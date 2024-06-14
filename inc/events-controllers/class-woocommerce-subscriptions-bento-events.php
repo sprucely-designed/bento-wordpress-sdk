@@ -50,6 +50,21 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
             );
 
             add_action(
+                'woocommerce_subscription_status_pending-cancel',
+                function ( $subscription ) {
+                    $user_id = self::maybe_get_user_id_from_order( $subscription );
+                    $details = self::prepare_subscription_event_details( $subscription );
+
+                    self::send_event(
+                        $user_id,
+                        '$SubscriptionPendingCancel',
+                        $subscription->get_billing_email(),
+                        $details
+                    );
+                }
+            );
+
+            add_action(
                 'woocommerce_subscription_status_cancelled',
                 function ( $subscription ) {
                     $user_id = self::maybe_get_user_id_from_order( $subscription );
