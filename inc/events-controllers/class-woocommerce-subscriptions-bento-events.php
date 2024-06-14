@@ -177,6 +177,7 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 			 * Triggered one time only when a subscription renewal payment should be processed.
 			 *
 			 * This can happen automatically when a subscription is due to renew or manually if the admin takes the action to process renewal payment from the subscription edit screen.
+			 * This does not indicate the renewal payment has been processed successfully.
 			 *
 			 * @param integer WC_Subscription $subscription The ID of the subscription that has ended the trial period.
 			 */
@@ -199,6 +200,41 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 					self::send_event(
 						$user_id,
 						'$SubscriptionRenewed',
+						$subscription->get_billing_email(),
+						$details
+					);
+				}
+			);
+
+			/**
+			 * Triggered when a renewal payment is processed on a subscription.
+			 *
+			 * This will occur for both manual and automatic renewal payments.
+			 *
+			 * @param object WC_Subscription $subscription An object representing the subscription that was paid.
+			 */
+			add_action(
+				'woocommerce_subscription_renewal_payment_complete',
+				function ( $subscription ) {
+					$user_id = self::maybe_get_user_id_from_order( $subscription );
+					$details = self::prepare_subscription_event_details( $subscription );
+
+					$order = $subscription->get_last_order( 'all' );
+
+					// Ensure the order is valid and retrieve the total value.
+					if ( $order ) {
+						$total    = $order->get_total();
+						$currency = $order->get_currency();
+
+						$details['value'] = array(
+							'currency' => $currency,
+							'amount'   => $total,
+						);
+					}
+
+					self::send_event(
+						$user_id,
+						'$SubscriptionRenewalPaymentComplete',
 						$subscription->get_billing_email(),
 						$details
 					);
