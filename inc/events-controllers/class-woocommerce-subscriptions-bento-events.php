@@ -19,6 +19,12 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 		 * @return void
 		 */
 		public function __construct() {
+
+			/**
+			 * Triggered when a subscription is created after a subscription product or products are purchased.
+			 *
+			 * @param WC_Subscription $subscription An instance representing the subscription just created at checkout.
+			 */
 			add_action(
 				'woocommerce_checkout_subscription_created',
 				function ( $subscription ) {
@@ -34,6 +40,13 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				}
 			);
 
+			/**
+			 * Triggered after the subscription status changed to activated.
+			 *
+			 * The status may have transitioned from pending to active, or on-hold to active or some other custom status to active.
+			 *
+			 * @param object WC_Subscription $subscription An object representing the subscription that changed status.
+			 */
 			add_action(
 				'woocommerce_subscription_status_active',
 				function ( $subscription ) {
@@ -49,6 +62,13 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				}
 			);
 
+			/**
+			 * Triggered immediately when an active subscription is cancelled by a customer or admin and there is prepaid time left on the subscription.
+			 *
+			 * This is an intermediate step before the subscription status is changed to cancelled.
+			 *
+			 * @param object WC_Subscription $subscription An object representing the subscription that changed status.
+			 */
 			add_action(
 				'woocommerce_subscription_status_pending-cancel',
 				function ( $subscription ) {
@@ -64,6 +84,14 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				}
 			);
 
+			/**
+			 * Triggered when a subscription status changes to cancelled.
+			 *
+			 * The status may have transitioned from on-hold to cancelled, or pending-cancel to cancelled, or active to cancelled, or some other custom status to cancelled.
+			 * This is the final status change that occurs when a subscription is cancelled.
+			 *
+			 * @param object WC_Subscription $subscription An object representing the subscription that changed status.
+			 */
 			add_action(
 				'woocommerce_subscription_status_cancelled',
 				function ( $subscription ) {
@@ -79,6 +107,13 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				}
 			);
 
+			/**
+			 * Triggered when a subscription status changes to expired.
+			 *
+			 * This could be the end of the original term length when it was purchased or if an end date was otherwise set.
+			 *
+			 * @param object WC_Subscription $subscription An object representing the subscription that changed status.
+			 */
 			add_action(
 				'woocommerce_subscription_status_expired',
 				function ( $subscription ) {
@@ -94,6 +129,14 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				}
 			);
 
+			/**
+			 * Triggered when a subscription is set on-hold (suspended or paused).
+			 *
+			 * This can occur directly if the an admin manually suspends the subscription or if the customer manually suspends their subscription from their my-account page.
+			 * This can also occur automatically when a renewal payment is pending. For automatic renewal payments, the status will be on-hold until the payment is processed successfully. For manual renewal payments, the status will be on-hold until the customer manually logs in and pays for the renewal.
+			 *
+			 * @param object WC_Subscription $subscription An object representing the subscription that changed status.
+			 */
 			add_action(
 				'woocommerce_subscription_status_on-hold',
 				function ( $subscription ) {
@@ -109,6 +152,11 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				}
 			);
 
+			/**
+			 * Triggered when a subscription trial ends.
+			 *
+			 * @param integer WC_Subscription $subscription The ID of the subscription that has ended the trial period.
+			 */
 			add_action(
 				'woocommerce_scheduled_subscription_trial_end',
 				function ( $subscription_id ) {
@@ -125,6 +173,13 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				}
 			);
 
+			/**
+			 * Triggered one time only when a subscription renewal payment should be processed.
+			 *
+			 * This can happen automatically when a subscription is due to renew or manually if the admin takes the action to process renewal payment from the subscription edit screen.
+			 *
+			 * @param integer WC_Subscription $subscription The ID of the subscription that has ended the trial period.
+			 */
 			add_action(
 				'woocommerce_scheduled_subscription_payment',
 				function ( $subscription_id ) {
