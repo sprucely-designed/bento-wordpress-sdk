@@ -29,7 +29,7 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				'woocommerce_checkout_subscription_created',
 				function ( $subscription ) {
 					$user_id = self::maybe_get_user_id_from_order( $subscription );
-					$details = self::prepare_subscription_event_details( $subscription );
+					$details = self::prepare_subscription_event_details( $subscription, true );
 
 					self::send_event(
 						$user_id,
@@ -51,7 +51,7 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				'woocommerce_subscription_status_active',
 				function ( $subscription ) {
 					$user_id = self::maybe_get_user_id_from_order( $subscription );
-					$details = self::prepare_subscription_event_details( $subscription );
+					$details = self::prepare_subscription_event_details( $subscription, true );
 
 					self::send_event(
 						$user_id,
@@ -73,7 +73,7 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				'woocommerce_subscription_status_pending-cancel',
 				function ( $subscription ) {
 					$user_id = self::maybe_get_user_id_from_order( $subscription );
-					$details = self::prepare_subscription_event_details( $subscription );
+					$details = self::prepare_subscription_event_details( $subscription, true );
 
 					self::send_event(
 						$user_id,
@@ -96,7 +96,7 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				'woocommerce_subscription_status_cancelled',
 				function ( $subscription ) {
 					$user_id = self::maybe_get_user_id_from_order( $subscription );
-					$details = self::prepare_subscription_event_details( $subscription );
+					$details = self::prepare_subscription_event_details( $subscription, true );
 
 					self::send_event(
 						$user_id,
@@ -118,7 +118,7 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				'woocommerce_subscription_status_expired',
 				function ( $subscription ) {
 					$user_id = self::maybe_get_user_id_from_order( $subscription );
-					$details = self::prepare_subscription_event_details( $subscription );
+					$details = self::prepare_subscription_event_details( $subscription, true );
 
 					self::send_event(
 						$user_id,
@@ -141,7 +141,7 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				'woocommerce_subscription_status_on-hold',
 				function ( $subscription ) {
 					$user_id = self::maybe_get_user_id_from_order( $subscription );
-					$details = self::prepare_subscription_event_details( $subscription );
+					$details = self::prepare_subscription_event_details( $subscription, true );
 
 					self::send_event(
 						$user_id,
@@ -162,7 +162,7 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				function ( $subscription_id ) {
 					$subscription = wcs_get_subscription( $subscription_id );
 					$user_id      = self::maybe_get_user_id_from_order( $subscription );
-					$details      = self::prepare_subscription_event_details( $subscription );
+					$details      = self::prepare_subscription_event_details( $subscription, false );
 
 					self::send_event(
 						$user_id,
@@ -186,7 +186,7 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				function ( $subscription_id ) {
 					$subscription = wcs_get_subscription( $subscription_id );
 					$user_id      = self::maybe_get_user_id_from_order( $subscription );
-					$details      = self::prepare_subscription_event_details( $subscription );
+					$details      = self::prepare_subscription_event_details( $subscription, false );
 
 					$order = $subscription->get_last_order( 'all' );
 
@@ -217,7 +217,7 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				'woocommerce_subscription_renewal_payment_complete',
 				function ( $subscription ) {
 					$user_id = self::maybe_get_user_id_from_order( $subscription );
-					$details = self::prepare_subscription_event_details( $subscription );
+					$details = self::prepare_subscription_event_details( $subscription, true );
 
 					$order = $subscription->get_last_order( 'all' );
 
@@ -250,7 +250,7 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 				'woocommerce_subscription_renewal_payment_failed',
 				function ( $subscription ) {
 					$user_id = self::maybe_get_user_id_from_order( $subscription );
-					$details = self::prepare_subscription_event_details( $subscription );
+					$details = self::prepare_subscription_event_details( $subscription, false );
 
 					$order = $subscription->get_last_order( 'all' );
 
@@ -279,16 +279,14 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 		 * Prepare the subscription details.
 		 *
 		 * @param WC_Subscription $subscription The subscription object.
+		 * @param bool $include_unique Whether to include the unique key.
 		 *
 		 * @return array
 		 */
-		private static function prepare_subscription_event_details( $subscription ) {
+		private static function prepare_subscription_event_details( $subscription, $include_unique = false ) {
 			$order = $subscription->get_last_order( 'all' );
 
 			$details = array(
-				'unique'       => array(
-					'key' => $order->get_order_key(),
-				),
 				'subscription' => array(
 					'id'     => $subscription->get_id(),
 					'status' => $subscription->get_status(),
@@ -297,6 +295,13 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 					),
 				),
 			);
+
+			// Conditionally add the unique key if requested.
+			if ( $include_unique && $order ) {
+				$details['unique'] = array(
+					'key' => $order->get_order_key(),
+				);
+			}
 
 			return $details;
 		}
