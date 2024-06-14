@@ -240,6 +240,39 @@ if ( class_exists( 'WC_Subscriptions' ) && ! class_exists( 'WooCommerce_Subscrip
 					);
 				}
 			);
+
+			/**
+			 * Triggered when a payment fails on a subscription renewal.
+			 *
+			 * @param object WC_Subscription $subscription An object representing the subscription that failed payment.
+			 */
+			add_action(
+				'woocommerce_subscription_renewal_payment_failed',
+				function ( $subscription ) {
+					$user_id = self::maybe_get_user_id_from_order( $subscription );
+					$details = self::prepare_subscription_event_details( $subscription );
+
+					$order = $subscription->get_last_order( 'all' );
+
+					// Ensure the order is valid and retrieve the total value.
+					if ( $order ) {
+						$total    = $order->get_total();
+						$currency = $order->get_currency();
+
+						$details['value'] = array(
+							'currency' => $currency,
+							'amount'   => $total,
+						);
+					}
+
+					self::send_event(
+						$user_id,
+						'$SubscriptionRenewalPaymentFailed',
+						$subscription->get_billing_email(),
+						$details
+					);
+				}
+			);
 		}
 
 		/**
